@@ -223,6 +223,7 @@ function handleSwipe(dx, dy){
     if(Math.abs(dx)>Math.abs(dy)){
         if(dx>60) document.body.classList.add("show-right","hide-home");
         if(dx<-60) document.body.classList.add("show-left","hide-home");
+        if(dx>60 && document.body.classList.contains("show-right")) document.body.classList.add("show-right");
     } else {
         if(dy>60) document.body.classList.add("show-down","hide-home");
         if(dy<-60) document.body.classList.add("show-up","hide-home");
@@ -249,4 +250,3 @@ function createConfetti(count){
 
 </body>
 </html>
-
