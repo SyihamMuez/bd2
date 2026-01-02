@@ -15,6 +15,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow: hidden;
 }
 
 /* PHONE FRAME */
@@ -49,6 +50,14 @@ body {
     transition: transform 0.6s ease;
 }
 
+/* ANIMATIONS */
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes fadeUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+@keyframes glow { from { text-shadow:0 0 5px #fff; } to { text-shadow:0 0 15px #fff; } }
+@keyframes pulse { 0%,100%{opacity:0.5;}50%{opacity:1;} }
+@keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-15px);} }
+@keyframes reveal { 0%{opacity:0; transform: translateY(20px);} 100%{opacity:1; transform:translateY(0);} }
+
 /* HOME - ROMANTIC */
 #home {
     background: linear-gradient(135deg, #ff758c, #ff7eb3);
@@ -67,28 +76,12 @@ body {
     animation: fadeUp 1.5s ease;
 }
 
-#home h1 {
-    font-size: 2.5em;
-    animation: glow 2s infinite alternate;
-}
-
+#home h1 { font-size: 2.5em; animation: glow 2s infinite alternate; }
 .subtitle { margin-top: 10px; font-size: 1.2em; opacity: 0.95; }
-
-/* FLOATING EMOJIS */
-.emojis {
-    font-size: 1.8em;
-    margin-top: 20px;
-    animation: float 3s ease-in-out infinite;
-}
+.emojis { font-size: 1.8em; margin-top: 20px; animation: float 3s ease-in-out infinite; }
 
 /* SWIPE HINTS */
-.hint {
-    position: absolute;
-    font-size: 0.9em;
-    opacity: 0.9;
-    animation: pulse 2s infinite;
-}
-
+.hint { position: absolute; font-size: 0.9em; opacity: 0.9; animation: pulse 2s infinite; }
 .hint.top { top: 15px; }
 .hint.bottom { bottom: 15px; }
 .hint.left { left: 10px; top: 50%; transform: translateY(-50%); }
@@ -96,11 +89,7 @@ body {
 
 /* PHOTOS */
 #photos { background: #222; transform: translateY(-100%); }
-.gallery {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-}
+.gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .gallery img { width: 100%; border-radius: 15px; }
 
 /* VIDEO */
@@ -112,9 +101,37 @@ video { width: 100%; border-radius: 20px; }
 #wish h2 { font-size: 2em; }
 #wish p { margin-top: 15px; font-size: 1.1em; }
 
+/* NAME REVEAL */
+#name { font-size: 1.4em; color: #ffeaa7; margin-top: 15px; opacity:0; animation: reveal 2s forwards; animation-delay: 0.5s; }
+
 /* GIFT */
 #gift { background: linear-gradient(135deg, #11998e, #38ef7d); transform: translateX(100%); text-align: center; }
 #gift img { width: 180px; animation: bounce 2s infinite; }
+
+/* CONFETTI */
+.confetti {
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top:0; left:0;
+    overflow: hidden;
+}
+
+.piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    opacity: 0.8;
+    border-radius: 50%;
+    animation: confetti-fall linear infinite;
+}
+
+@keyframes confetti-fall {
+    0% { transform: translateY(-10px) rotate(0deg); }
+    100% { transform: translateY(720px) rotate(360deg); }
+}
 
 /* ACTIVE STATES */
 .show-up #photos { transform: translateY(0); }
@@ -122,17 +139,14 @@ video { width: 100%; border-radius: 20px; }
 .show-left #wish { transform: translateX(0); }
 .show-right #gift { transform: translateX(0); }
 .hide-home #home { opacity: 0; transform: scale(0.9); }
-
-/* ANIMATIONS */
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-@keyframes fadeUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
-@keyframes glow { from { text-shadow:0 0 5px #fff; } to { text-shadow:0 0 15px #fff; } }
-@keyframes pulse { 0%,100%{opacity:0.5;}50%{opacity:1;} }
-@keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-15px);} }
 </style>
 </head>
 
 <body>
+
+<!-- BACKGROUND MUSIC -->
+<audio id="bgMusic" src="music.mp3" autoplay loop></audio>
+
 <div class="phone">
     <div class="screen">
 
@@ -143,7 +157,6 @@ video { width: 100%; border-radius: 20px; }
                 <p class="subtitle">Today is all about you ✨</p>
                 <div class="emojis">💕 💖 💫 💝 ✨ 💞</div>
 
-                <!-- Swipe hints -->
                 <div class="hint top">⬆️ Photos</div>
                 <div class="hint bottom">⬇️ Video</div>
                 <div class="hint left">⬅️ Wish</div>
@@ -175,6 +188,7 @@ video { width: 100%; border-radius: 20px; }
                     your dreams come true,<br>
                     and your smile never fade ✨
                 </p>
+                <div id="name">💌 [Your Name Here]</div>
             </div>
         </div>
 
@@ -185,15 +199,19 @@ video { width: 100%; border-radius: 20px; }
                 <img src="gift.png">
                 <p>Open it soon 😄</p>
             </div>
+            <div class="confetti" id="confetti"></div>
         </div>
 
     </div>
 </div>
 
 <script>
-let startX=0,startY=0;
-document.querySelector('.screen').addEventListener("touchstart", e => { startX=e.touches[0].clientX; startY=e.touches[0].clientY; });
-document.querySelector('.screen').addEventListener("touchend", e => {
+let startX=0, startY=0;
+const screen = document.querySelector('.screen');
+const confettiContainer = document.getElementById('confetti');
+
+screen.addEventListener("touchstart", e => { startX=e.touches[0].clientX; startY=e.touches[0].clientY; });
+screen.addEventListener("touchend", e => {
     let dx=e.changedTouches[0].clientX - startX;
     let dy=e.changedTouches[0].clientY - startY;
     handleSwipe(dx, dy);
@@ -201,6 +219,7 @@ document.querySelector('.screen').addEventListener("touchend", e => {
 
 function handleSwipe(dx, dy){
     document.body.className="";
+    confettiContainer.innerHTML = ''; // clear confetti each swipe
     if(Math.abs(dx)>Math.abs(dy)){
         if(dx>60) document.body.classList.add("show-right","hide-home");
         if(dx<-60) document.body.classList.add("show-left","hide-home");
@@ -208,8 +227,26 @@ function handleSwipe(dx, dy){
         if(dy>60) document.body.classList.add("show-down","hide-home");
         if(dy<-60) document.body.classList.add("show-up","hide-home");
     }
+
+    // Show confetti only on gift page
+    if(document.body.classList.contains("show-right")){
+        createConfetti(100);
+    }
+}
+
+// CREATE CONFETTI
+function createConfetti(count){
+    for(let i=0;i<count;i++){
+        const c = document.createElement('div');
+        c.classList.add('piece');
+        c.style.left = Math.random()*360 + 'px';
+        c.style.background = `hsl(${Math.random()*360}, 70%, 60%)`;
+        c.style.animationDuration = (2 + Math.random()*2)+'s';
+        confettiContainer.appendChild(c);
+    }
 }
 </script>
 
 </body>
 </html>
+
